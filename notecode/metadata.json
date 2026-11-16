@@ -1,0 +1,8 @@
+{
+  "name": "NoteCode",
+  "description": "Create and share formatted code snippets with instant URL persistence and dual light/dark editor themes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

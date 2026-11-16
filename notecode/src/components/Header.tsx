@@ -25,7 +25,7 @@ export function Header({
         className="inline-flex items-center gap-2 sm:gap-2.5 text-[#FFFFFE] whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFFFFE] rounded-lg px-1 py-1"
       >
         <img
-          src="/logo.png"
+          src="/dc.png"
           alt="NoteCode logo"
           width={32}
           height={32}

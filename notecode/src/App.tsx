@@ -228,10 +228,16 @@ function NoteCodeWorkspace() {
         }),
       });
 
-      const body = (await res.json()) as {
-        snippet?: SavedSnippet;
-        error?: string;
-      };
+      const rawBody = await res.text();
+      let body: { snippet?: SavedSnippet; error?: string } = {};
+      try {
+        body = JSON.parse(rawBody) as typeof body;
+      } catch {
+        // Non-JSON response (e.g. a platform error page)
+        throw new Error(
+          `Server error (${res.status}). Please try again in a moment.`
+        );
+      }
 
       if (!res.ok || !body.snippet) {
         throw new Error(body.error || 'Failed to share snippet.');

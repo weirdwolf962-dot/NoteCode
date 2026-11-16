@@ -59,10 +59,11 @@ export const createPool = () => {
       connectionTimeoutMillis: intFromEnv('PG_CONNECTION_TIMEOUT_MS', 15_000),
       // Server-side and client-side caps so a stuck query can't pin a slot forever.
       // Set PG_STATEMENT_TIMEOUT_MS=0 if your pooler (pgbouncer) rejects startup parameters.
-      statement_timeout:
-        process.env.PG_STATEMENT_TIMEOUT_MS === '0'
-          ? undefined
-          : intFromEnv('PG_STATEMENT_TIMEOUT_MS', 10_000),
+      // Server-side cap is OPT-IN: pooled endpoints (Neon/Supabase pgbouncer) reject the
+      // "statement_timeout" startup parameter, which makes every query fail with a 500.
+      // Set PG_STATEMENT_TIMEOUT_MS=10000 only on a direct (non-pooled) connection.
+      // query_timeout below is client-side only and always safe.
+      statement_timeout: intFromEnv('PG_STATEMENT_TIMEOUT_MS', 0, 0) || undefined,
       query_timeout: intFromEnv('PG_QUERY_TIMEOUT_MS', 10_000),
       // Recycle long-lived connections so they rebalance across DB / proxy restarts.
       maxLifetimeSeconds: intFromEnv('PG_MAX_LIFETIME_SECONDS', 1800),

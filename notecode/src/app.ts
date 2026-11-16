@@ -6,10 +6,9 @@ import {
   getSnippetById,
   getSnippetsByUserUid,
 } from './db/snippets.ts';
-import { pool } from './db/index.ts';
+import { getPool } from './db/index.ts';
 import { getOrCreateUser } from './db/users.ts';
 import { type AuthRequest, optionalAuth, requireAuth } from './middleware/auth.ts';
-import { executeServerScript } from './utils/serverExecute.ts';
 import { isValidSnippetId, validateSnippetPayload } from './utils/snippet.ts';
 
 /**
@@ -39,6 +38,7 @@ export function createApiApp() {
   // Only returns error codes/names, never connection details.
   app.get('/api/health/db', async (_req: Request, res: Response) => {
     try {
+      const pool = getPool();
       await pool.query('select 1');
       const t = await pool.query(
         "select to_regclass('public.users') as users, to_regclass('public.snippets') as snippets"
@@ -50,12 +50,14 @@ export function createApiApp() {
         tables: { users: Boolean(users), snippets: Boolean(snippets) },
       });
     } catch (error: unknown) {
-      const e = error as { code?: string };
+      const e = error as { code?: string; message?: string };
       console.error('DB health check failed:', error);
       res.status(500).json({
         ok: false,
         connected: false,
         code: e.code ?? 'unknown',
+        // Missing-variable errors only name the variable, never a value.
+        ...(/^SQL_\w+ must be set/.test(e.message ?? '') ? { config: e.message } : {}),
       });
     }
   });
@@ -187,6 +189,7 @@ export function createApiApp() {
 
       const stdin = typeof body.stdin === 'string' ? body.stdin : '';
       try {
+        const { executeServerScript } = await import('./utils/serverExecute.ts');
         const result = await executeServerScript({
           code: body.code,
           language: body.language,

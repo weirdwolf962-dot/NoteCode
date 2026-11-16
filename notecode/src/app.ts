@@ -1,4 +1,4 @@
-import express, { type Request, type Response } from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import {
   createSnippet,
@@ -18,6 +18,17 @@ import { isValidSnippetId, validateSnippetPayload } from './utils/snippet.ts';
  */
 const SERVER_EXECUTION_ENABLED =
   process.env.ENABLE_SERVER_EXECUTION === 'true' && !process.env.VERCEL;
+
+/**
+ * Extracts a short machine code (e.g. Postgres 42P01 "table missing", 28P01 "bad password",
+ * Node ENOTFOUND / ECONNREFUSED) so a 500 is diagnosable from the browser/Vercel logs.
+ * Never returns messages, hosts or credentials.
+ */
+function errorCode(error: unknown): string | undefined {
+  const source = (error as { cause?: unknown } | null)?.cause ?? error;
+  const code = (source as { code?: unknown } | null)?.code;
+  return typeof code === 'string' ? code : undefined;
+}
 
 /**
  * Builds the JSON API only (no Vite, no static files, no listen()).
@@ -79,7 +90,8 @@ export function createApiApp() {
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to sync user';
-      res.status(500).json({ error: message });
+      console.error('POST /api/auth/sync failed:', error);
+      res.status(500).json({ error: message, code: errorCode(error) });
     }
   });
 
@@ -96,7 +108,8 @@ export function createApiApp() {
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Failed to load snippets';
-      res.status(500).json({ error: message });
+      console.error('GET /api/me/snippets failed:', error);
+      res.status(500).json({ error: message, code: errorCode(error) });
     }
   });
 
@@ -129,7 +142,8 @@ export function createApiApp() {
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Failed to save snippet';
-      res.status(500).json({ error: message });
+      console.error('POST /api/snippets failed:', error);
+      res.status(500).json({ error: message, code: errorCode(error) });
     }
   });
 
@@ -148,7 +162,8 @@ export function createApiApp() {
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Failed to load snippet';
-      res.status(500).json({ error: message });
+      console.error('GET /api/snippets/:id failed:', error);
+      res.status(500).json({ error: message, code: errorCode(error) });
     }
   });
 
@@ -212,6 +227,20 @@ export function createApiApp() {
 
   app.use('/api/*', (_req: Request, res: Response) => {
     res.status(404).json({ error: 'API route not found.' });
+  });
+
+  // Last resort: anything thrown outside a route's own try/catch (bad JSON body,
+  // a middleware bug...) still answers with JSON instead of an HTML/plain 500 page.
+  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('Unhandled API error:', err);
+    const status =
+      typeof (err as { status?: unknown })?.status === 'number'
+        ? (err as { status: number }).status
+        : 500;
+    res.status(status >= 400 && status < 600 ? status : 500).json({
+      error: status === 400 ? 'Invalid request body.' : 'Internal server error.',
+      code: errorCode(err),
+    });
   });
 
   return app;

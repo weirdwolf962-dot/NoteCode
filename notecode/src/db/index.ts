@@ -1,4 +1,4 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema.ts';
 
@@ -78,15 +78,28 @@ export const createPool = () => {
   return global._postgresPool;
 };
 
-export const pool = createPool();
+/** Created on first use, so a missing SQL_* variable fails the request (readable error), not the whole function at load time. */
+export function getPool(): Pool {
+  return createPool();
+}
 
-export const db = drizzle(pool, { schema });
+type Database = NodePgDatabase<typeof schema>;
+let _db: Database | undefined;
+
+export const db: Database = new Proxy({} as Database, {
+  get(_target, prop) {
+    _db ??= drizzle(createPool(), { schema });
+    const value = Reflect.get(_db, prop, _db) as unknown;
+    return typeof value === 'function' ? value.bind(_db) : value;
+  },
+});
 
 /** Drain the pool so connections are returned to Postgres on shutdown (e.g. Cloud Run SIGTERM). */
 export async function closePool(): Promise<void> {
   if (global._postgresPool) {
     const p = global._postgresPool;
     global._postgresPool = undefined;
+    _db = undefined;
     await p.end();
   }
 }

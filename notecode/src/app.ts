@@ -6,6 +6,7 @@ import {
   getSnippetById,
   getSnippetsByUserUid,
 } from './db/snippets.ts';
+import { pool } from './db/index.ts';
 import { getOrCreateUser } from './db/users.ts';
 import { type AuthRequest, optionalAuth, requireAuth } from './middleware/auth.ts';
 import { executeServerScript } from './utils/serverExecute.ts';
@@ -32,6 +33,31 @@ export function createApiApp() {
 
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ ok: true });
+  });
+
+  // Diagnostic: checks the DB connection and that the tables exist.
+  // Only returns error codes/names, never connection details.
+  app.get('/api/health/db', async (_req: Request, res: Response) => {
+    try {
+      await pool.query('select 1');
+      const t = await pool.query(
+        "select to_regclass('public.users') as users, to_regclass('public.snippets') as snippets"
+      );
+      const { users, snippets } = t.rows[0] as { users: string | null; snippets: string | null };
+      res.status(users && snippets ? 200 : 500).json({
+        ok: Boolean(users && snippets),
+        connected: true,
+        tables: { users: Boolean(users), snippets: Boolean(snippets) },
+      });
+    } catch (error: unknown) {
+      const e = error as { code?: string };
+      console.error('DB health check failed:', error);
+      res.status(500).json({
+        ok: false,
+        connected: false,
+        code: e.code ?? 'unknown',
+      });
+    }
   });
 
   app.post('/api/auth/sync', requireAuth, async (req: AuthRequest, res: Response) => {

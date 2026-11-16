@@ -40,3 +40,7 @@ function buildOptions() {
 }
 
 if (!getApps().length) {
+  initializeApp(buildOptions());
+}
+
+export const adminAuth = getAuth();

@@ -4,13 +4,15 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
-    "types": ["vite/client"],
     "lib": [
       "ES2022",
       "DOM",
       "DOM.Iterable"
     ],
     "skipLibCheck": true,
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "rewriteRelativeImportExtensions": true,
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",

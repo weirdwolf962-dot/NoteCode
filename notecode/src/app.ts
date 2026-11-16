@@ -30,6 +30,12 @@ function errorCode(error: unknown): string | undefined {
   return typeof code === 'string' ? code : undefined;
 }
 
+/** JSON body for a 500: the message the UI shows, with the short code appended when known. */
+function errorBody(message: string, error: unknown) {
+  const code = errorCode(error);
+  return { error: code ? `${message} (${code})` : message, code };
+}
+
 /**
  * Builds the JSON API only (no Vite, no static files, no listen()).
  * Used by server.ts (local / VPS / Cloud Run) and api/index.ts (Vercel).
@@ -91,7 +97,7 @@ export function createApiApp() {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to sync user';
       console.error('POST /api/auth/sync failed:', error);
-      res.status(500).json({ error: message, code: errorCode(error) });
+      res.status(500).json(errorBody(message, error));
     }
   });
 
@@ -109,7 +115,7 @@ export function createApiApp() {
       const message =
         error instanceof Error ? error.message : 'Failed to load snippets';
       console.error('GET /api/me/snippets failed:', error);
-      res.status(500).json({ error: message, code: errorCode(error) });
+      res.status(500).json(errorBody(message, error));
     }
   });
 
@@ -143,7 +149,7 @@ export function createApiApp() {
       const message =
         error instanceof Error ? error.message : 'Failed to save snippet';
       console.error('POST /api/snippets failed:', error);
-      res.status(500).json({ error: message, code: errorCode(error) });
+      res.status(500).json(errorBody(message, error));
     }
   });
 
@@ -163,7 +169,7 @@ export function createApiApp() {
       const message =
         error instanceof Error ? error.message : 'Failed to load snippet';
       console.error('GET /api/snippets/:id failed:', error);
-      res.status(500).json({ error: message, code: errorCode(error) });
+      res.status(500).json(errorBody(message, error));
     }
   });
 

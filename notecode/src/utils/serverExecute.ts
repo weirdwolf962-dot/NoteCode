@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import os from 'os';
 import path from 'path';
 import {
-  ExecutionResult,
+  type ExecutionResult,
   detectUnsupportedPackageImport,
   formatPackageErrorMessage,
 } from './runner.ts';

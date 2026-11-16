@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="notecode.png" alt="NoteCode logo" width="120" />
+<img src="file.png" alt="NoteCode logo" width="120" />
 
 # NoteCode
 

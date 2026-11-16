@@ -126,7 +126,7 @@ export function CodeEditorCard({
       colors: {
         'editor.background': '#FFFFFE',
         'editor.foreground': '#121826',
-        'editor.lineHighlightBackground': '#F1F5F9',
+        'editor.lineHighlightBackground': '#FFFFFE00', 'editor.lineHighlightBorder': '#E5E7EB',
         'editorLineNumber.foreground': '#94A3B8',
         'editorLineNumber.activeForeground': '#121826',
         'editor.selectionBackground': '#406AFF26',
@@ -202,7 +202,7 @@ export function CodeEditorCard({
       data-testid="code-editor-container"
       data-theme={theme}
       data-language={language}
-      className={`w-full max-w-[1040px] mx-auto rounded-2xl border shadow-[0_24px_60px_-15px_rgba(18,24,38,0.35)] transition-colors duration-150 overflow-hidden ${
+      className={`w-full max-w-[880px] mx-auto rounded-2xl border shadow-[0_12px_40px_-12px_rgba(18,24,38,0.18)] transition-colors duration-150 overflow-hidden ${
         isDark
           ? 'bg-[#121826] border-[#364153] text-[#FFFFFE]'
           : 'bg-[#FFFFFE] border-[#CED6E1] text-[#121826]'
@@ -262,6 +262,15 @@ export function CodeEditorCard({
             theme={isDark ? 'notecode-dark' : 'notecode-light'}
             beforeMount={handleBeforeMount}
             onMount={(editor, monaco) => {
+              // Park the cursor at the end of the snippet (matches the design mockup)
+              const model = editor.getModel();
+              if (model) {
+                const last = model.getLineCount();
+                editor.setPosition({
+                  lineNumber: last,
+                  column: model.getLineMaxColumn(last),
+                });
+              }
               editor.addCommand(
                 monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
                 () => {
@@ -279,19 +288,19 @@ export function CodeEditorCard({
               </div>
             }
             options={{
-              fontSize: 14,
-              lineHeight: 22,
+              fontSize: 12,
+              lineHeight: 18,
               fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              minimap: { enabled: false },
+              minimap: { enabled: true, renderCharacters: false, maxColumn: 60, scale: 1 },
               scrollBeyondLastLine: false,
               padding: { top: 20, bottom: 20 },
               lineNumbersMinChars: 3,
               glyphMargin: false,
-              folding: true,
+              folding: true, showFoldingControls: 'always', guides: { indentation: true },
               automaticLayout: true,
               tabSize: 2,
               wordWrap: 'on',
-              renderLineHighlight: 'line',
+              renderLineHighlight: 'all',
               overviewRulerLanes: 0,
               hideCursorInOverviewRuler: true,
               scrollbar: {
@@ -476,7 +485,7 @@ export function CodeEditorCard({
           )}
 
           <span
-            className={`hidden md:inline-flex items-center gap-1.5 text-xs font-mono tabular-nums pl-1 ${
+            className={`hidden 2xl:inline-flex items-center gap-1.5 text-xs font-mono tabular-nums pl-1 ${
               isDark ? 'text-[#CED6E1]/85' : 'text-[#364153]/85'
             }`}
           >

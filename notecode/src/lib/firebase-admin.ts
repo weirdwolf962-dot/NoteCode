@@ -1,6 +1,10 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 
+// NOTE: keep firebase-admin on v13 (see package.json). v14 loads the ESM-only "jose" package
+// through jwks-rsa via require(), which Vercel's function runtime rejects with
+// ERR_REQUIRE_ESM and crashes every /api request. Upgrade only after verifying on Vercel.
+
 // Token verification only needs the project ID. It is read from the environment
 // (no JSON import, which plain Node ESM cannot do without an import attribute).
 // Must match "projectId" in firebase-applet-config.json.
@@ -36,7 +40,3 @@ function buildOptions() {
 }
 
 if (!getApps().length) {
-  initializeApp(buildOptions());
-}
-
-export const adminAuth = getAuth();

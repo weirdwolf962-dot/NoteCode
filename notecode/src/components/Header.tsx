@@ -16,32 +16,32 @@ export function Header({
 
   return (
     <header className="w-full max-w-[1040px] mx-auto px-3 sm:px-6 pt-4 sm:pt-5 pb-2 flex items-center justify-between gap-2 sm:gap-6">
-      <a
-        href="/"
-        onClick={(e) => {
-          e.preventDefault();
-          onNewSnippet();
-        }}
-        className="inline-flex items-center gap-2 sm:gap-2.5 text-[#FFFFFE] whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFFFFE] rounded-lg px-1 py-1"
-      >
-        <img
-          src="/dc.png"
-          alt="NoteCode logo"
-          width={32}
-          height={32}
-          referrerPolicy="no-referrer"
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0"
-        />
-        <span className="flex flex-col leading-tight">
-          <span className="text-lg sm:text-xl font-semibold tracking-tight">
-            NoteCode
-          </span>
-          <span className="text-[11px] font-medium text-[#FFFFFE]/80 tracking-normal">
-            by Quantum coders
-          </span>
-        </span>
-      </a>
-
+  <a
+    href="/"
+    onClick={(e) => {
+      e.preventDefault();
+      onNewSnippet();
+    }}
+    className="inline-flex items-center gap-2 sm:gap-2.5 text-[#FFFFFE] whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFFFFE] rounded-lg px-1 py-1"
+  >
+    <img
+      src="/logo.png"
+      alt="NoteCode logo"
+      width={32}
+      height={32}
+      referrerPolicy="no-referrer"
+      className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0"
+    />
+    <span className="flex flex-col leading-tight">
+      <span className="text-lg sm:text-xl font-semibold tracking-tight">
+        NoteCode
+      </span>
+      <span className="text-[11px] font-medium text-[#FFFFFE]/80 tracking-normal">
+        by Quantum coders
+      </span>
+    </span>
+  </a>
+</header>
       <nav
         aria-label="Primary actions"
         className="flex items-center gap-1.5 sm:gap-4 shrink-0"

@@ -10,9 +10,6 @@
       "DOM.Iterable"
     ],
     "skipLibCheck": true,
-    "types": ["node"],
-    "resolveJsonModule": true,
-    "rewriteRelativeImportExtensions": true,
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",

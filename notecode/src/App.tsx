@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CodeEditorCard } from './components/CodeEditorCard';
 import { Header } from './components/Header';
+import { PageBackdrop } from './components/PageBackdrop';
 import { SnippetsDrawer } from './components/SnippetsDrawer';
 import { ConsoleLogEntry, TerminalTab } from './components/TerminalPanel';
 import { executeSnippetInBrowserOrServer } from './utils/browserRunners';
@@ -316,19 +317,20 @@ function NoteCodeWorkspace() {
     language !== 'html';
 
   return (
-    <div className="min-h-screen w-full notecode-gradient-bg flex flex-col">
+    <div className="relative min-h-screen w-full flex flex-col">
+      <PageBackdrop />
       <Header
         onNewSnippet={handleNewSnippet}
         onOpenLibrary={() => setDrawerOpen(true)}
         showNewButton={showNewButton}
       />
 
-      <main className="flex-1 w-full px-4 sm:px-6 pt-6 pb-12 flex flex-col items-center">
-        <div className="text-center max-w-2xl mx-auto mb-8">
-          <h1 className="text-[32px] sm:text-[40px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#FFFFFE] text-balance">
+      <main className="relative z-10 flex-1 w-full px-4 sm:px-6 pt-6 pb-12 flex flex-col items-center">
+        <div className="text-center max-w-2xl mx-auto mb-9">
+          <h1 className="text-[26px] sm:text-[32px] font-semibold leading-[1.15] tracking-[-0.02em] text-[#121826] text-balance">
             Create &amp; Share
           </h1>
-          <p className="mt-1.5 text-[24px] sm:text-[32px] font-semibold leading-[1.2] tracking-[-0.015em] text-[#FFFFFE]/95 text-balance">
+          <p className="mt-3.5 text-[32px] sm:text-[40px] font-semibold leading-[1.2] tracking-[-0.015em] text-[#121826] text-balance">
             Your Code easily
           </p>
         </div>
@@ -407,7 +409,7 @@ function NoteCodeWorkspace() {
         )}
       </main>
 
-      <footer className="w-full py-5 px-4 text-center text-xs text-[#FFFFFE]/80">
+      <footer className="relative z-10 w-full py-5 px-4 text-center text-xs text-[#FFFFFE]/80">
         NoteCode — Instant code sharing with PostgreSQL persistence
       </footer>
 

@@ -229,7 +229,7 @@ function NoteCodeWorkspace() {
       });
 
       const rawBody = await res.text();
-      let body: { snippet?: SavedSnippet; error?: string; code?: string } = {};
+      let body: { snippet?: SavedSnippet; error?: string } = {};
       try {
         body = JSON.parse(rawBody) as typeof body;
       } catch {
@@ -240,10 +240,7 @@ function NoteCodeWorkspace() {
       }
 
       if (!res.ok || !body.snippet) {
-        throw new Error(
-          (body.error || 'Failed to share snippet.') +
-            (body.code ? ` (${body.code})` : '')
-        );
+        throw new Error(body.error || 'Failed to share snippet.');
       }
 
       const created = body.snippet;
@@ -427,3 +424,6 @@ export default function App() {
   return (
     <AuthProvider>
       <NoteCodeWorkspace />
+    </AuthProvider>
+  );
+}

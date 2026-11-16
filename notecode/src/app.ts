@@ -24,16 +24,40 @@ const SERVER_EXECUTION_ENABLED =
  * Node ENOTFOUND / ECONNREFUSED) so a 500 is diagnosable from the browser/Vercel logs.
  * Never returns messages, hosts or credentials.
  */
-function errorCode(error: unknown): string | undefined {
-  const source = (error as { cause?: unknown } | null)?.cause ?? error;
-  const code = (source as { code?: unknown } | null)?.code;
-  return typeof code === 'string' ? code : undefined;
+function errorChain(error: unknown): unknown[] {
+  const chain: unknown[] = [];
+  let current: unknown = error;
+  // Drizzle wraps the driver error, and our db helpers wrap that again, so walk the whole chain.
+  while (current && chain.length < 6) {
+    chain.push(current);
+    current = (current as { cause?: unknown }).cause;
+  }
+  return chain;
 }
 
-/** JSON body for a 500: the message the UI shows, with the short code appended when known. */
+function errorCode(error: unknown): string | undefined {
+  for (const item of errorChain(error)) {
+    const code = (item as { code?: unknown }).code;
+    if (typeof code === 'string') return code;
+  }
+  return undefined;
+}
+
+/** A missing SQL_* variable only names the variable, never a value, so it is safe to show. */
+function configHint(error: unknown): string | undefined {
+  for (const item of errorChain(error)) {
+    const message = (item as { message?: unknown }).message;
+    if (typeof message === 'string' && /^SQL_\w+ must be set/.test(message)) return message;
+  }
+  return undefined;
+}
+
+/** JSON body for a 500: the message the UI shows, with the short code / config hint appended when known. */
 function errorBody(message: string, error: unknown) {
   const code = errorCode(error);
-  return { error: code ? `${message} (${code})` : message, code };
+  const hint = configHint(error);
+  const text = [message, hint, code ? `(${code})` : undefined].filter(Boolean).join(' ');
+  return { error: text, code };
 }
 
 /**
@@ -227,27 +251,3 @@ export function createApiApp() {
       res.status(503).json({
         error:
           'Server-side JavaScript/TypeScript execution is disabled on this deployment.',
-      });
-    });
-  }
-
-  app.use('/api/*', (_req: Request, res: Response) => {
-    res.status(404).json({ error: 'API route not found.' });
-  });
-
-  // Last resort: anything thrown outside a route's own try/catch (bad JSON body,
-  // a middleware bug...) still answers with JSON instead of an HTML/plain 500 page.
-  app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-    console.error('Unhandled API error:', err);
-    const status =
-      typeof (err as { status?: unknown })?.status === 'number'
-        ? (err as { status: number }).status
-        : 500;
-    res.status(status >= 400 && status < 600 ? status : 500).json({
-      error: status === 400 ? 'Invalid request body.' : 'Internal server error.',
-      code: errorCode(err),
-    });
-  });
-
-  return app;
-}
